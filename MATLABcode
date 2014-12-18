@@ -1,0 +1,47 @@
+
+
+
+function [times, states] = rungeKuttaFour(derivativeFunction, propFunk, timeSpan, initialConditions)
+
+    % Determine the number of items in outputs
+    numSteps = length(timeSpan);  
+    
+    [~,numCond] = size(initialConditions);
+    % Initialize the outputs
+    times = zeros(numSteps,1);
+    states = zeros(numSteps,numCond);
+    
+    % Assign first row of outputs
+    times(1) = timeSpan(1);
+    for i = 1:numCond
+    states(1,i) = initialConditions(i);
+    end    
+    k1 = zeros(1,numCond);
+    timeStep = timeSpan(numSteps)/(numSteps-1);
+    % Loop to assign other rows of output
+    for i = 1:(numSteps-1)
+        
+        % Assign variables for current time, current state
+        currentTime = times(i) + timeStep;
+        currentStates = states(i,:);
+        deriv = derivativeFunction(currentTime, currentStates, propFunk);
+        for j = 1:numCond
+            k1(j) = deriv(j)*timeStep;
+        end
+        k2 = derivativeFunction(currentTime + 0.5 * timeStep, currentStates + k1*timeStep/2, propFunk);
+        k3 = derivativeFunction(currentTime + 0.5 * timeStep, currentStates + k2*timeStep/2, propFunk);
+        k4 = derivativeFunction(currentTime + timeStep, currentStates + k3*timeStep, propFunk);
+        
+        nextStates = currentStates + timeStep *((k1 + 2*k2 + 2*k3 + k4)/6);
+        if nextStates(1,2) < 0
+            nextStates(1,2) = 0;
+            nextStates(1,1) = currentStates(1,1);
+        end
+        % Assign the outputs
+        times(i+1) = currentTime;
+        states(i+1,:) = nextStates;
+        
+    % End of loop
+    end
+
+end % function
